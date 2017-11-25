@@ -16,13 +16,13 @@ class DiscordRPC:
     async def read_output(self):
         while True:
             data = await self.sock_reader.read(1024)
-            code, length = struct.unpack('ii', data[:8])
+            code, length = struct.unpack('<ii', data[:8])
             print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
             await asyncio.sleep(1)
 
     def send_data(self, op: int, payload: dict):
         payload = json.dumps(payload)
-        self.sock_writer.write(struct.pack('ii', op, len(payload)) + payload.encode('utf-8'))
+        self.sock_writer.write(struct.pack('<ii', op, len(payload)) + payload.encode('utf-8'))
 
     async def handshake(self):
         self.sock_reader, self.sock_writer = await asyncio.open_unix_connection(self.ipc_path, loop=self.loop)

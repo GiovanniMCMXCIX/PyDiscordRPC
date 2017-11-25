@@ -16,43 +16,53 @@ class DiscordRPC:
     async def read_output(self):
         while True:
             data = await self.sock_reader.read(1024)
-            print(f'OP Code: {struct.unpack("i", data[:4])[0]}; Length: {struct.unpack("i", data[4:8])[0]}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
+            code, length = struct.unpack('ii', data[:8])
+            print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
             await asyncio.sleep(1)
 
     def send_data(self, op: int, payload: dict):
         payload = json.dumps(payload)
-        self.sock_writer.write(struct.pack('i', op) + struct.pack('i', len(payload)) + payload.encode('utf-8'))
+        self.sock_writer.write(struct.pack('ii', op, len(payload)) + payload.encode('utf-8'))
 
     async def handshake(self):
         self.sock_reader, self.sock_writer = await asyncio.open_unix_connection(self.ipc_path, loop=self.loop)
         self.send_data(0, {'v': 1, 'client_id': '352253827933667338'})
         data = await self.sock_reader.read(1024)
-        print(f'OP Code: {struct.unpack("i", data[:4])[0]}; Length: {struct.unpack("i", data[4:8])[0]}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
+        code, length = struct.unpack('ii', data[:8])
+        print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
 
     def send_rich_presence(self):
         current_time = time.time()
         payload = {
-            "cmd": "SET_ACTIVITY",
-            "args": {
-                "activity": {
-                    "state": "am sad",
-                    "details": ":(",
-                    "timestamps": {
-                        "start": int(current_time)
+            'cmd': 'SET_ACTIVITY',
+            'args': {
+                'activity': {
+                    'state': 'am sad',
+                    'details': ':(',
+                    'timestamps': {
+                        'start': int(current_time),
+                        'end': int(current_time) + (5 * 60)
                     },
-                    "assets": {
-                        "small_text": ":^(",
-                        "small_image": "gio",
-                        "large_text": ">tfw no gf",
-                        "large_image": "feels"
+                    'assets': {
+                        'large_text': '>tfw no gf',
+                        'large_image': 'feels',
+                        'small_text': 'that\'s me',
+                        'small_image': 'gio'
                     },
-                    "party": {
-                        "size": [21, 42]
-                    }
+                    'party': {
+                        'id': '4chan',
+                        'size': [21, 42]  # [Minimum, Maximum]
+                    },
+                    'secrets': {
+                        'match': 'install_gentoo',
+                        'join': 'communism_is_bad',
+                        'spectate': 'b0nzybuddy',
+                    },
+                    'instance': True
                 },
-                "pid": os.getpid()
+                'pid': os.getpid()
             },
-            "nonce": f'{current_time:.20f}'
+            'nonce': f'{current_time:.20f}'
         }
         self.send_data(1, payload)
 

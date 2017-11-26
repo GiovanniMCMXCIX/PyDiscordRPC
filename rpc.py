@@ -38,7 +38,7 @@ class DiscordRPC:
             self.sock_writer, _ = await self.loop.create_pipe_connection(lambda: reader_protocol, self.ipc_path)
         self.send_data(0, {'v': 1, 'client_id': '352253827933667338'})
         data = await self.sock_reader.read(1024)
-        code, length = struct.unpack('ii', data[:8])
+        code, length = struct.unpack('<ii', data[:8])
         print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
 
     def send_rich_presence(self):
@@ -76,10 +76,6 @@ class DiscordRPC:
         }
         self.send_data(1, payload)
 
-    def close(self):
-        self.sock_writer.close()
-        self.loop.close()
-
 
 if __name__ == '__main__':
     discord_rpc = DiscordRPC()
@@ -88,4 +84,5 @@ if __name__ == '__main__':
         discord_rpc.send_rich_presence()
         discord_rpc.loop.run_until_complete(discord_rpc.read_output())
     except KeyboardInterrupt:
-        discord_rpc.close()
+        discord_rpc.sock_writer.close()
+        discord_rpc.loop.close()

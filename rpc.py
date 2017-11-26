@@ -4,6 +4,7 @@ import os
 import struct
 import sys
 import time
+import uuid
 
 
 class DiscordRPC:
@@ -80,7 +81,7 @@ class DiscordRPC:
                 },
                 'pid': os.getpid()
             },
-            'nonce': f'{current_time:.20f}'
+            'nonce': str(uuid.uuid4())
         }
         self.send_data(1, payload)
 

@@ -9,7 +9,7 @@ import uuid
 
 class DiscordRPC:
     def __init__(self):
-        if sys.platform == 'linux':
+        if sys.platform == 'linux' or sys.platform == 'darwin':
             env_vars = ['XDG_RUNTIME_DIR', 'TMPDIR', 'TMP', 'TEMP']
             path = next((os.environ.get(path, None) for path in env_vars if path in os.environ), '/tmp')
             self.ipc_path = f'{path}/discord-ipc-0'
@@ -38,7 +38,7 @@ class DiscordRPC:
         self.sock_writer.write(struct.pack('<ii', op, len(payload)) + payload.encode('utf-8'))
 
     async def handshake(self):
-        if sys.platform == 'linux':
+        if sys.platform == 'linux' or sys.platform == 'darwin':
             self.sock_reader, self.sock_writer = await asyncio.open_unix_connection(self.ipc_path, loop=self.loop)
         elif sys.platform == 'win32':
             self.sock_reader = asyncio.StreamReader(loop=self.loop)

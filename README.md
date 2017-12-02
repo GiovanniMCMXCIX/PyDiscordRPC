@@ -1,6 +1,4 @@
 # PyDiscordRPC
-An example for Discord RPC written in Python.
-
-Requires Python 3.6 or higher.
+An example for Discord RPC written in Python 3.6
 
 Feel free to contribute.
